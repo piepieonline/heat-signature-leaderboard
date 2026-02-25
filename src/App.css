@@ -1,42 +1,135 @@
 #root {
-  max-width: 1280px;
+  display: flex;
+  align-content: center;
+  width: 100%;
+}
+
+.container {
+  max-width: 900px;
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+h1 {
+  font-size: 2rem;
+  margin-bottom: 0.25rem;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+h2 {
+  font-size: 1.25rem;
+  font-weight: 400;
+  color: #aaa;
+  margin-top: 0;
+  margin-bottom: 1.5rem;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+.controls {
+  display: inline-flex;
+  gap: 0.75rem;
+  align-items: center;
+  margin-bottom: 1.5rem;
 }
 
-.card {
-  padding: 2em;
+.controls input[type="date"] {
+  background: #1a1525;
+  border: 1px solid #3e3558;
+  border-radius: 4px;
+  color: #ddd;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.95rem;
+  font-family: inherit;
 }
 
-.read-the-docs {
+.controls button {
+  background: #2a2035;
+  border: 1px solid #3e3558;
+  border-radius: 4px;
+  color: #e8c96a;
+  padding: 0.4rem 1.1rem;
+  font-size: 0.95rem;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.controls button:hover:not(:disabled) {
+  background: #342848;
+}
+
+.controls button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.leaderboard-name {
+  font-size: 0.9rem;
   color: #888;
+  margin-bottom: 1rem;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+thead tr {
+  background-color: #2a2035;
+}
+
+th {
+  padding: 0.6rem 1rem;
+  color: #e8c96a;
+  font-weight: 600;
+  text-align: center;
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+th.col-name {
+  text-align: left;
+}
+
+tbody tr {
+  background-color: #1a1525;
+  border-bottom: 1px solid #2e2840;
+}
+
+tbody tr:hover {
+  background-color: #241d33;
+}
+
+td {
+  padding: 0.55rem 1rem;
+  text-align: center;
+  color: #ccc;
+  font-variant-numeric: tabular-nums;
+}
+
+td.rank {
+  color: #e8c96a;
+  font-weight: 600;
+}
+
+td.name {
+  text-align: left;
+  font-weight: 700;
+  color: #ffffff;
+  font-variant-numeric: normal;
+}
+
+td.score {
+  font-weight: 700;
+  color: #e8c96a;
+}
+
+.status {
+  color: #888;
+  font-style: italic;
+}
+
+.status.error {
+  color: #e06c75;
+  font-style: normal;
 }
