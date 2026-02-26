@@ -54,6 +54,11 @@ function App() {
           <TopPlayersChart dates={chartDates} dayData={chartDayData} />
         </div>
       </div>
+      <footer className="footer">
+        <a href="https://github.com/piepieonline/heat-signature-leaderboard" target="_blank" rel="noopener noreferrer">
+          GitHub
+        </a>
+      </footer>
     </div>
   )
 }
