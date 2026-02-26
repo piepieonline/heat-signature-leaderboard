@@ -2,21 +2,14 @@ import { useEffect, useRef } from 'react'
 import { Chart } from 'chart.js'
 import type { LeaderboardData } from './App'
 
-const BIN_COUNT = 10
 const BAR_COLOR = '#7ec8e3'
+const STEP = 100
+const MAX_SCORE = 600
 
 interface Props {
   data: LeaderboardData | null
 }
 
-function niceStep(rawStep: number): number {
-  const magnitude = Math.pow(10, Math.floor(Math.log10(rawStep)))
-  const normalized = rawStep / magnitude
-  if (normalized <= 1) return magnitude
-  if (normalized <= 2) return 2 * magnitude
-  if (normalized <= 5) return 5 * magnitude
-  return 10 * magnitude
-}
 
 export default function ScoreHistogram({ data }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -29,23 +22,27 @@ export default function ScoreHistogram({ data }: Props) {
     if (!data || data.entries.length < 2 || !canvasRef.current) return
 
     const scores = data.entries.map((e) => e.displayScore)
-    const min = Math.min(...scores)
-    const max = Math.max(...scores)
 
-    const step = niceStep((max - min) / BIN_COUNT)
-    const binMin = Math.floor(min / step) * step
-    const binCount = Math.ceil((max - binMin) / step) + 1
+    // Buckets: [<0, 0–99, 100–199, 200–299, 300–399, 400–499, 500–599, 600]
+    const positiveBucketCount = MAX_SCORE / STEP  // 6 buckets: 0-99..500-599
+    const totalBuckets = 1 + positiveBucketCount + 1  // <0, 0–99..500–599, 600
 
-    const counts = Array(binCount).fill(0)
+    const counts = Array(totalBuckets).fill(0)
     for (const s of scores) {
-      const idx = Math.min(Math.floor((s - binMin) / step), binCount - 1)
-      counts[idx]++
+      if (s < 0) {
+        counts[0]++
+      } else if (s >= MAX_SCORE) {
+        counts[totalBuckets - 1]++
+      } else {
+        counts[1 + Math.floor(s / STEP)]++
+      }
     }
 
     const labels = counts.map((_, i) => {
-      const lo = binMin + i * step
-      const hi = lo + step
-      return `${lo.toLocaleString()}–${hi.toLocaleString()}`
+      if (i === 0) return `<0`
+      if (i === totalBuckets - 1) return `${MAX_SCORE}`
+      const lo = (i - 1) * STEP
+      return `${lo}–${lo + STEP - 1}`
     })
 
     chartRef.current = new Chart(canvasRef.current, {
