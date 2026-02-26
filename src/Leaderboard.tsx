@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { fetchUrl } from './App'
 import type { LeaderboardData } from './App'
 
 function todayDate() {
@@ -11,11 +12,6 @@ function yesterdayDate() {
   return d.toISOString().slice(0, 10)
 }
 
-function fetchUrl(d: string) {
-  return import.meta.env.DEV
-    ? `/leaderboard?date=${d}`
-    : `${import.meta.env.BASE_URL}leaderboards/${d}.json`
-}
 
 function parseDetails(details: string) {
   const parts = details.split(':')

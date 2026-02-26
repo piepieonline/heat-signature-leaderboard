@@ -4,7 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "node scripts/dev.js",
+    "start": "vite",
+    "start-remote": "vite --mode remote",
+    "server": "server\\LeaderboardExtractorServer.exe",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"

@@ -31,10 +31,13 @@ export function lastNDatesEndingYesterday(n: number): string[] {
   return dates
 }
 
-function fetchUrl(d: string) {
-  return import.meta.env.DEV
+const REMOTE_URL = (d: string) =>
+  `https://raw.githubusercontent.com/piepieonline/heat-signature-leaderboard-history/refs/heads/main/${d}.json`
+
+export function fetchUrl(d: string) {
+  return import.meta.env.DEV && !import.meta.env.VITE_USE_REMOTE
     ? `/leaderboard?date=${d}`
-    : `${import.meta.env.BASE_URL}leaderboards/${d}.json`
+    : REMOTE_URL(d)
 }
 
 function yesterdayDate() {

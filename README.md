@@ -17,11 +17,22 @@ npm install
 Ensure you are logged into Steam on an account that owns Heat Signature.
 
 ```
-npm run dev
+npm run start
 ```
 
-Opens the frontend at `http://localhost:5173` and runs the server (`.\server\LeaderboardExtractorServer.exe`).
-Vite proxies `/leaderboard` requests to the backend at `http://localhost:8080`
+Opens the frontend at `http://localhost:5173`. Vite proxies `/leaderboard` requests to the backend at `http://localhost:8080`.
+
+```
+npm run server
+```
+
+Runs the server (`.\server\LeaderboardExtractorServer.exe`).
+
+```
+npm run start-remote
+```
+
+Opens the frontend at `http://localhost:5173`, but uses github as the source of leaderboards (https://github.com/piepieonline/heat-signature-leaderboard-history).
 
 ## Usage
 
