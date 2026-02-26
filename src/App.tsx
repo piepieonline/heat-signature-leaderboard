@@ -11,13 +11,26 @@ Chart.register(LineController, LineElement, PointElement, LinearScale, CategoryS
 
 export interface LeaderboardEntry {
   rank: number
-  missions: number
   displayScore: number
-  timeSecs: number
-  timeStr: string
   details: string  // "missions:expenses:style:timeSecs"
   steamId: number
   name: string
+}
+
+export function parseDetails(details: string) {
+  const parts = details.split(':')
+  const missions = Number(parts[0])
+  const expenses = Number(parts[1])
+  const style = Number(parts[2])
+  const timeSecs = Number(parts[3])
+  const totalSecs = Math.round(timeSecs)
+  const h = Math.floor(totalSecs / 3600)
+  const m = Math.floor((totalSecs % 3600) / 60)
+  const s = totalSecs % 60
+  const timeStr = h > 0
+    ? `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
+    : `${m}:${String(s).padStart(2, '0')}`
+  return { missions, expenses, style, timeSecs, timeStr }
 }
 
 export interface LeaderboardData {

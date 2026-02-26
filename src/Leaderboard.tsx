@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { LeaderboardData } from './App'
+import { parseDetails } from './App'
 import type { LeaderboardFetchState } from './useLeaderboard'
 
 function todayDate() {
@@ -18,13 +19,6 @@ function initialDate() {
   return yesterdayDate()
 }
 
-function parseDetails(details: string) {
-  const parts = details.split(':')
-  return {
-    expenses: Number(parts[1]),
-    style: Number(parts[2]),
-  }
-}
 
 interface Props {
   chartDates: string[]
@@ -36,8 +30,17 @@ interface Props {
 
 export default function Leaderboard({ initialData, loading: initialLoading, fetchState }: Props) {
   const [date, setDate] = useState(initialDate)
+  const lastWorkingDate = useRef(initialDate())
 
   const { data, fetchLoading, error, notCached, dismissNotCached, fetchDate, loadDate } = fetchState
+
+  useEffect(() => {
+    if (data != null) lastWorkingDate.current = date
+  }, [data])
+
+  useEffect(() => {
+    if (error || notCached) setDate(lastWorkingDate.current)
+  }, [error, notCached])
 
   const displayData = data ?? initialData
   const isLoading = initialLoading || fetchLoading
@@ -99,16 +102,16 @@ export default function Leaderboard({ initialData, loading: initialLoading, fetc
               </tr>
             </thead>
             <tbody>
-              {displayData.entries.map((entry, index) => {
-                const { expenses, style } = parseDetails(entry.details)
+              {displayData.entries.map((entry) => {
+                const { missions, expenses, style, timeStr } = parseDetails(entry.details)
                 return (
-                  <tr key={index}>
+                  <tr key={`${entry.steamId}-${date}`}>
                     <td className="rank">{entry.rank}</td>
                     <td className="name">{entry.name}</td>
-                    <td>{entry.missions}/3</td>
+                    <td>{missions}/3</td>
                     <td>{expenses}</td>
                     <td>{style > 0 ? `+${style}` : style}</td>
-                    <td>{entry.timeStr}</td>
+                    <td>{timeStr}</td>
                     <td className="score">{entry.displayScore}</td>
                   </tr>
                 )

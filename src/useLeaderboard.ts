@@ -57,7 +57,7 @@ export function useLeaderboard(chartDates: string[]) {
     )
   }, [])
 
-  function doFetch(d: string) {
+  async function doFetch(d: string) {
     const chartIdx = chartDates.indexOf(d)
     if (chartIdx !== -1 && chartDayData[chartIdx] !== null) {
       setSelectedData(chartDayData[chartIdx])
@@ -69,26 +69,20 @@ export function useLeaderboard(chartDates: string[]) {
     setError(null)
     setNotCached(false)
 
-    fetch(fetchUrl(d))
-      .then((res) => {
-        if (res.status === 404 && isRemote) {
-          setNotCached(true)
-          setFetchLoading(false)
-          return null
-        }
-        if (!res.ok) throw new Error(`Server error: ${res.status}`)
-        return res.json() as Promise<LeaderboardData>
-      })
-      .then((json) => {
-        if (json) {
-          setSelectedData(json)
-          setFetchLoading(false)
-        }
-      })
-      .catch((err: Error) => {
-        setError(err.message)
-        setFetchLoading(false)
-      })
+    try {
+      const res = await fetch(fetchUrl(d))
+      if (res.status === 404 && isRemote) {
+        setNotCached(true)
+        return
+      }
+      if (!res.ok) throw new Error(`Server error: ${res.status}`)
+      const json = (await res.json()) as LeaderboardData
+      setSelectedData(json)
+    } catch (err) {
+      setError((err as Error).message)
+    } finally {
+      setFetchLoading(false)
+    }
   }
 
   const fetchState: LeaderboardFetchState = {

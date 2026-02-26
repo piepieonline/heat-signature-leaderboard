@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { Chart } from 'chart.js'
 import type { LeaderboardData } from './App'
+import { parseDetails } from './App'
 
 const BUCKET_COLORS = ['#4a3f6b', '#7b6fa0', '#b09fd0', '#e8c96a']
 const BUCKET_LABELS = ['0/3', '1/3', '2/3', '3/3']
@@ -21,7 +22,7 @@ export default function MissionsChart({ data }: Props) {
 
     const counts = [0, 0, 0, 0]
     for (const entry of data.entries) {
-      const m = entry.missions
+      const m = parseDetails(entry.details).missions
       if (m >= 0 && m <= 3) counts[m]++
     }
 
