@@ -1,8 +1,73 @@
 import { useEffect, useRef } from 'react'
 import { Chart, LineController, LineElement, PointElement, LinearScale, CategoryScale, Legend, Tooltip } from 'chart.js'
+import type { Plugin } from 'chart.js'
 import type { LeaderboardData } from './App'
 
 Chart.register(LineController, LineElement, PointElement, LinearScale, CategoryScale, Legend, Tooltip)
+
+const RAINBOW_STOPS: [number, string][] = [
+  [0,     '#ff0000'],
+  [1/6,   '#ff8800'],
+  [2/6,   '#ffff00'],
+  [3/6,   '#00ff00'],
+  [4/6,   '#0088ff'],
+  [5/6,   '#8800ff'],
+  [1,     '#ff0000'],
+]
+
+const overlapPlugin: Plugin = {
+  id: 'overlapHighlight',
+  afterDraw(chart) {
+    const ctx = chart.ctx
+    // Build map: `${dataIndex},${value}` -> first dataset index that owns it
+    const pointMap = new Map<string, { x: number; y: number }>()
+    const overlapKeys = new Set<string>()
+
+    chart.data.datasets.forEach((ds, dsIdx) => {
+      const meta = chart.getDatasetMeta(dsIdx)
+      if (!meta.visible) return
+      meta.data.forEach((point, dataIdx) => {
+        const value = (ds.data as (number | null)[])[dataIdx]
+        if (value == null) return
+        const key = `${dataIdx},${value}`
+        if (pointMap.has(key)) {
+          overlapKeys.add(key)
+        } else {
+          pointMap.set(key, { x: point.x, y: point.y })
+        }
+      })
+    })
+
+    if (overlapKeys.size === 0) return
+
+    for (const key of overlapKeys) {
+      const pos = pointMap.get(key)!
+      const { x, y } = pos
+      const r = 4
+
+      /*
+      // Exterior ring
+      ctx.save()
+      ctx.beginPath()
+      ctx.arc(x, y, r + 4, 0, Math.PI * 2)
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)'
+      ctx.lineWidth = 1.5
+      ctx.stroke()
+      ctx.restore()
+      */
+     
+      // Rainbow dot via conic gradient
+      ctx.save()
+      const gradient = ctx.createConicGradient(0, x, y)
+      for (const [stop, color] of RAINBOW_STOPS) gradient.addColorStop(stop, color)
+      ctx.beginPath()
+      ctx.arc(x, y, r, 0, Math.PI * 2)
+      ctx.fillStyle = gradient
+      ctx.fill()
+      ctx.restore()
+    }
+  },
+}
 
 const COLORS = [
   '#e8c96a', '#7ec8e3', '#b57bee', '#e87a5a', '#7be87a',
@@ -93,6 +158,7 @@ export default function TopPlayersChart({ dates, dayData }: Props) {
 
     rankChartRef.current = new Chart(rankCanvasRef.current, {
       type: 'line',
+      plugins: [overlapPlugin],
       data: {
         labels,
         datasets: makeDatasets(players, playerColors, dayData, validIndices, (e) => e.rank <= 10 ? e.rank : null),
