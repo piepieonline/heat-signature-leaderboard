@@ -114,10 +114,10 @@ export default function Leaderboard({ chartDates, chartDayData, initialData, loa
               </tr>
             </thead>
             <tbody>
-              {displayData.entries.map((entry) => {
+              {displayData.entries.map((entry, index) => {
                 const { expenses, style } = parseDetails(entry.details)
                 return (
-                  <tr key={entry.rank}>
+                  <tr key={index}>
                     <td className="rank">{entry.rank}</td>
                     <td className="name">{entry.name}</td>
                     <td>{entry.missions}/3</td>
