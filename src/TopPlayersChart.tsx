@@ -1,9 +1,7 @@
 import { useEffect, useRef } from 'react'
-import { Chart, LineController, LineElement, PointElement, LinearScale, CategoryScale, Legend, Tooltip } from 'chart.js'
+import { Chart } from 'chart.js'
 import type { Plugin } from 'chart.js'
 import type { LeaderboardData } from './App'
-
-Chart.register(LineController, LineElement, PointElement, LinearScale, CategoryScale, Legend, Tooltip)
 
 const RAINBOW_STOPS: [number, string][] = [
   [0,     '#ff0000'],

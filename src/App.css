@@ -234,6 +234,12 @@ td.score {
   height: 480px;
 }
 
+.charts-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
 .footer {
   margin-top: 2rem;
   text-align: center;

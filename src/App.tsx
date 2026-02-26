@@ -1,8 +1,13 @@
 import { useState } from 'react'
 import './App.css'
+import { Chart, LineController, LineElement, PointElement, LinearScale, CategoryScale, Legend, Tooltip, BarController, BarElement } from 'chart.js'
 import TopPlayersChart from './TopPlayersChart'
+import MissionsChart from './MissionsChart'
+import ScoreHistogram from './ScoreHistogram'
 import Leaderboard from './Leaderboard'
 import { useLeaderboard } from './useLeaderboard'
+
+Chart.register(LineController, LineElement, PointElement, LinearScale, CategoryScale, Legend, Tooltip, BarController, BarElement)
 
 export interface LeaderboardEntry {
   rank: number
@@ -35,6 +40,7 @@ export function lastNDatesEndingYesterday(n: number): string[] {
 function App() {
   const [chartDates] = useState<string[]>(() => lastNDatesEndingYesterday(5))
   const { chartDayData, initialData, chartLoading, fetchState } = useLeaderboard(chartDates)
+  const displayData = fetchState.data ?? initialData
 
   return (
     <div className="container">
@@ -51,7 +57,11 @@ function App() {
           fetchState={fetchState}
         />
         <div className="panel panel-stats">
-          <TopPlayersChart dates={chartDates} dayData={chartDayData} />
+          <div className="charts-stack">
+            <TopPlayersChart dates={chartDates} dayData={chartDayData} />
+            <MissionsChart data={displayData} />
+            <ScoreHistogram data={displayData} />
+          </div>
         </div>
       </div>
       <footer className="footer">
