@@ -1,6 +1,6 @@
-import { useRef, useState } from 'react'
-import { fetchUrl } from './App'
+import { useState } from 'react'
 import type { LeaderboardData } from './App'
+import type { LeaderboardFetchState } from './useLeaderboard'
 
 function todayDate() {
   return new Date().toISOString().slice(0, 10)
@@ -12,6 +12,11 @@ function yesterdayDate() {
   return d.toISOString().slice(0, 10)
 }
 
+function initialDate() {
+  const param = new URLSearchParams(window.location.search).get('date')
+  if (param && /^\d{4}-\d{2}-\d{2}$/.test(param) && param <= todayDate()) return param
+  return yesterdayDate()
+}
 
 function parseDetails(details: string) {
   const parts = details.split(':')
@@ -26,47 +31,22 @@ interface Props {
   chartDayData: (LeaderboardData | null)[]
   initialData: LeaderboardData | null
   loading: boolean
+  fetchState: LeaderboardFetchState
 }
 
-export default function Leaderboard({ chartDates, chartDayData, initialData, loading: initialLoading }: Props) {
-  const [date, setDate] = useState(yesterdayDate)
-  const [fetchLoading, setFetchLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [data, setData] = useState<LeaderboardData | null>(null)
-  const hasFetchedOnce = useRef(true)
+export default function Leaderboard({ initialData, loading: initialLoading, fetchState }: Props) {
+  const [date, setDate] = useState(initialDate)
+
+  const { data, fetchLoading, error, notCached, dismissNotCached, fetchDate, loadDate } = fetchState
 
   const displayData = data ?? initialData
   const isLoading = initialLoading || fetchLoading
-
-  function fetchLeaderboard(d: string) {
-    const chartIdx = chartDates.indexOf(d)
-    if (chartIdx !== -1 && chartDayData[chartIdx] !== null) {
-      setData(chartDayData[chartIdx])
-      setError(null)
-      return
-    }
-    setFetchLoading(true)
-    setError(null)
-    fetch(fetchUrl(d))
-      .then((res) => {
-        if (!res.ok) throw new Error(`Server error: ${res.status}`)
-        return res.json()
-      })
-      .then((json: LeaderboardData) => {
-        setData(json)
-        setFetchLoading(false)
-      })
-      .catch((err: Error) => {
-        setError(err.message)
-        setFetchLoading(false)
-      })
-  }
 
   function handleDateChange(e: React.ChangeEvent<HTMLInputElement>) {
     const newDate = e.target.value
     if (newDate > todayDate()) return
     setDate(newDate)
-    if (hasFetchedOnce.current) fetchLeaderboard(newDate)
+    fetchDate(newDate)
   }
 
   function stepDate(delta: number) {
@@ -74,23 +54,32 @@ export default function Leaderboard({ chartDates, chartDayData, initialData, loa
     const newDate = new Date(Date.UTC(y, m - 1, d + delta)).toISOString().slice(0, 10)
     if (newDate > todayDate()) return
     setDate(newDate)
-    if (hasFetchedOnce.current) fetchLeaderboard(newDate)
-  }
-
-  function handleFetch() {
-    hasFetchedOnce.current = true
-    fetchLeaderboard(date)
+    fetchDate(newDate)
   }
 
   return (
     <div className="panel panel-leaderboard">
+      {notCached && (
+        <div className="modal-backdrop" onClick={dismissNotCached}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <h2>Data Not Available</h2>
+            <p>
+              The leaderboard data for <strong>{date}</strong> hasn't been cached yet and isn't
+              available in the remote history.
+            </p>
+            <p>Data is archived daily — older or future dates may not be stored.</p>
+            <button onClick={dismissNotCached}>Dismiss</button>
+          </div>
+        </div>
+      )}
+
       {error && <p className="status error">Error: {error}</p>}
 
       <div className="controls">
         <button onClick={() => stepDate(-1)}>&larr;</button>
         <input type="date" value={date} max={todayDate()} onChange={handleDateChange} />
         <button onClick={() => stepDate(1)}>&rarr;</button>
-        <button onClick={handleFetch} disabled={isLoading}>
+        <button onClick={() => loadDate(date)} disabled={isLoading}>
           {isLoading ? 'Loading…' : 'Load'}
         </button>
       </div>
@@ -126,9 +115,7 @@ export default function Leaderboard({ chartDates, chartDayData, initialData, loa
               })}
             </tbody>
           </table>
-          {displayData.entries.length === 0 && (
-            <p className="status">No entries found.</p>
-          )}
+          {displayData.entries.length === 0 && <p className="status">No entries found.</p>}
         </>
       )}
     </div>

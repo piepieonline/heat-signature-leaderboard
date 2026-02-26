@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import './App.css'
 import TopPlayersChart from './TopPlayersChart'
 import Leaderboard from './Leaderboard'
+import { useLeaderboard } from './useLeaderboard'
 
 export interface LeaderboardEntry {
   rank: number
@@ -31,42 +32,9 @@ export function lastNDatesEndingYesterday(n: number): string[] {
   return dates
 }
 
-const REMOTE_URL = (d: string) =>
-  `https://raw.githubusercontent.com/piepieonline/heat-signature-leaderboard-history/refs/heads/main/${d}.json`
-
-export function fetchUrl(d: string) {
-  return import.meta.env.DEV && !import.meta.env.VITE_USE_REMOTE
-    ? `/leaderboard?date=${d}`
-    : REMOTE_URL(d)
-}
-
-function yesterdayDate() {
-  const d = new Date()
-  d.setUTCDate(d.getUTCDate() - 1)
-  return d.toISOString().slice(0, 10)
-}
-
 function App() {
   const [chartDates] = useState<string[]>(() => lastNDatesEndingYesterday(5))
-  const [chartDayData, setChartDayData] = useState<(LeaderboardData | null)[]>(() => Array(5).fill(null))
-  const [initialData, setInitialData] = useState<LeaderboardData | null>(null)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    Promise.allSettled(
-      chartDates.map((d) =>
-        fetch(fetchUrl(d))
-          .then((res) => (res.ok ? (res.json() as Promise<LeaderboardData>) : Promise.resolve(null)))
-          .catch(() => null)
-      )
-    ).then((results) => {
-      const loaded = results.map((r) => (r.status === 'fulfilled' ? r.value : null))
-      setChartDayData(loaded)
-      const yIdx = chartDates.indexOf(yesterdayDate())
-      if (yIdx !== -1 && loaded[yIdx]) setInitialData(loaded[yIdx])
-      setLoading(false)
-    })
-  }, [])
+  const { chartDayData, initialData, chartLoading, fetchState } = useLeaderboard(chartDates)
 
   return (
     <div className="container">
@@ -79,7 +47,8 @@ function App() {
           chartDates={chartDates}
           chartDayData={chartDayData}
           initialData={initialData}
-          loading={loading}
+          loading={chartLoading}
+          fetchState={fetchState}
         />
         <div className="panel panel-stats">
           <TopPlayersChart dates={chartDates} dayData={chartDayData} />
