@@ -5,6 +5,7 @@ import TopPlayersChart from './TopPlayersChart'
 import MissionsChart from './MissionsChart'
 import ScoreHistogram from './ScoreHistogram'
 import Leaderboard from './Leaderboard'
+import PlayerStats from './PlayerStats'
 import { useLeaderboard } from './useLeaderboard'
 
 Chart.register(LineController, LineElement, PointElement, LinearScale, CategoryScale, Legend, Tooltip, BarController, BarElement)
@@ -52,31 +53,44 @@ export function lastNDatesEndingYesterday(n: number): string[] {
 
 function App() {
   const [chartDates] = useState<string[]>(() => lastNDatesEndingYesterday(5))
+  const [activeTab, setActiveTab] = useState<'leaderboard' | 'statistics'>('leaderboard')
   const { chartDayData, initialData, chartLoading, fetchState } = useLeaderboard(chartDates)
   const displayData = fetchState.data ?? initialData
 
   return (
     <div className="container">
       <h1>Heat Signature Daily Leaderboard and Stats</h1>
-      <br />
-      <br />
 
-      <div className="panels">
-        <Leaderboard
-          chartDates={chartDates}
-          chartDayData={chartDayData}
-          initialData={initialData}
-          loading={chartLoading}
-          fetchState={fetchState}
-        />
-        <div className="panel panel-stats">
-          <div className="charts-stack">
-            <TopPlayersChart dates={chartDates} dayData={chartDayData} />
-            <MissionsChart data={displayData} />
-            <ScoreHistogram data={displayData} />
+      <div className="tab-bar">
+        <button className={`tab-btn${activeTab === 'leaderboard' ? ' active' : ''}`} onClick={() => setActiveTab('leaderboard')}>Leaderboard</button>
+        <button className={`tab-btn${activeTab === 'statistics' ? ' active' : ''}`} onClick={() => setActiveTab('statistics')}>Statistics</button>
+      </div>
+
+      {activeTab === 'leaderboard' && (
+        <div className="panels">
+          <Leaderboard
+            chartDates={chartDates}
+            chartDayData={chartDayData}
+            initialData={initialData}
+            loading={chartLoading}
+            fetchState={fetchState}
+          />
+          <div className="panel panel-stats">
+            <div className="charts-stack">
+              <TopPlayersChart dates={chartDates} dayData={chartDayData} />
+              <MissionsChart data={displayData} />
+              <ScoreHistogram data={displayData} />
+            </div>
           </div>
         </div>
-      </div>
+      )}
+
+      {activeTab === 'statistics' && (
+        <div className="panel panel-statistics">
+          <PlayerStats />
+        </div>
+      )}
+
       <footer className="footer">
         <a href="https://github.com/piepieonline/heat-signature-leaderboard" target="_blank" rel="noopener noreferrer">
           GitHub

@@ -7,7 +7,8 @@ export default defineConfig({
   base: process.env.VITE_BASE ?? '/',
   server: {
     proxy: {
-      '/leaderboard': 'http://localhost:8080',
+      '/leaderboard': 'http://localhost:9001',
+      '/stats': 'http://localhost:9001',
     },
   },
 })

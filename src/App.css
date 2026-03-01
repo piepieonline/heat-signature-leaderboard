@@ -240,6 +240,61 @@ td.score {
   gap: 1.5rem;
 }
 
+.tab-bar {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid #3e3558;
+  margin-bottom: 1.5rem;
+  margin-top: 1rem;
+}
+
+.tab-btn {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  border-bottom: 2px solid transparent;
+  color: #888;
+  padding: 0.5rem 1.5rem;
+  font-size: 0.95rem;
+  font-family: inherit;
+  cursor: pointer;
+  margin-bottom: -1px;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.tab-btn:hover {
+  color: #ccc;
+}
+
+.tab-btn.active {
+  color: #e8c96a;
+  border-bottom-color: #e8c96a;
+}
+
+.panel-statistics {
+  text-align: left;
+}
+
+.stats-search {
+  background: #1a1525;
+  border: 1px solid #3e3558;
+  border-radius: 4px;
+  color: #ddd;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.95rem;
+  font-family: inherit;
+  width: 220px;
+}
+
+.stats-th-sortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.stats-th-sortable:hover {
+  color: #f0d98a;
+}
+
 .footer {
   margin-top: 2rem;
   text-align: center;
