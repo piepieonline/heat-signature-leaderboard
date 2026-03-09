@@ -295,6 +295,49 @@ td.score {
   color: #f0d98a;
 }
 
+.stats-col-btn {
+  background: #1a1525;
+  border: 1px solid #3e3558;
+  border-radius: 4px;
+  color: #ddd;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.95rem;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.stats-col-btn:hover {
+  border-color: #f0d98a;
+  color: #f0d98a;
+}
+
+.stats-col-picker {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  background: #1a1525;
+  border: 1px solid #3e3558;
+  border-radius: 4px;
+  padding: 0.5rem 0;
+  z-index: 100;
+  min-width: 170px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+}
+
+.stats-col-picker-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0.75rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.stats-col-picker-item:hover {
+  background: #251e35;
+}
+
 .footer {
   margin-top: 2rem;
   text-align: center;

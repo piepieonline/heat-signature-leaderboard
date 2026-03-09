@@ -7,6 +7,10 @@ interface PlayerStat {
   appearances: number
   bestRank: number
   bestRankDate: string
+  medianRank: number
+  medianRankLast30: number | null
+  bestRankLast30: number | null
+  bestRankLast30Date: string | null
 }
 
 interface StatsData {
@@ -14,8 +18,29 @@ interface StatsData {
   players: PlayerStat[]
 }
 
-type SortKey = 'name' | 'appearances' | 'bestRank' | 'bestRankDate'
+type SortKey = 'name' | 'appearances' | 'bestRank' | 'bestRankDate' | 'medianRank' | 'medianRankLast30' | 'bestRankLast30' | 'bestRankLast30Date'
 type SortDir = 'asc' | 'desc'
+
+interface ColDef {
+  key: SortKey
+  label: string
+  defaultVisible: boolean
+  className?: string
+  render: (p: PlayerStat) => React.ReactNode
+}
+
+const COLUMNS: ColDef[] = [
+  { key: 'name',             label: 'Name',            defaultVisible: true,  className: 'col-name', render: p => p.name },
+  { key: 'appearances',      label: 'Appearances',     defaultVisible: true,  render: p => p.appearances },
+  { key: 'bestRank',         label: 'Best Rank',       defaultVisible: true,  className: 'rank', render: p => `#${p.bestRank}` },
+  { key: 'bestRankDate',     label: 'Best Rank Date',  defaultVisible: false, render: p => p.bestRankDate },
+  { key: 'bestRankLast30',   label: 'Best (30d)',      defaultVisible: true,  className: 'rank', render: p => p.bestRankLast30 != null ? `#${p.bestRankLast30}` : '—' },
+  { key: 'bestRankLast30Date', label: 'Best (30d) Date', defaultVisible: false, render: p => p.bestRankLast30Date ?? '—' },
+  { key: 'medianRank',       label: 'Median Rank',     defaultVisible: true,  className: 'rank', render: p => `#${p.medianRank}` },
+  { key: 'medianRankLast30', label: 'Median (30d)',    defaultVisible: true,  className: 'rank', render: p => p.medianRankLast30 != null ? `#${p.medianRankLast30}` : '—' },
+]
+
+const DEFAULT_VISIBLE = new Set(COLUMNS.filter(c => c.defaultVisible).map(c => c.key))
 
 const STATS_URL = isRemote
   ? 'https://raw.githubusercontent.com/piepieonline/heat-signature-leaderboard-history/refs/heads/main/stats.json'
@@ -33,6 +58,8 @@ export default function PlayerStats() {
   const [search, setSearch] = useState('')
   const [sortKey, setSortKey] = useState<SortKey>('bestRank')
   const [sortDir, setSortDir] = useState<SortDir>('asc')
+  const [visibleCols, setVisibleCols] = useState<Set<SortKey>>(DEFAULT_VISIBLE)
+  const [colPickerOpen, setColPickerOpen] = useState(false)
 
   useEffect(() => {
     fetch(STATS_URL)
@@ -47,9 +74,20 @@ export default function PlayerStats() {
       setSortDir(d => d === 'asc' ? 'desc' : 'asc')
     } else {
       setSortKey(key)
-      setSortDir(key === 'name' || key === 'bestRankDate' ? 'asc' : key === 'bestRank' ? 'asc' : 'desc')
+      setSortDir(key === 'appearances' ? 'desc' : 'asc')
     }
   }
+
+  function toggleCol(key: SortKey) {
+    setVisibleCols(prev => {
+      const next = new Set(prev)
+      if (next.has(key)) next.delete(key)
+      else next.add(key)
+      return next
+    })
+  }
+
+  const activeCols = COLUMNS.filter(c => visibleCols.has(c.key))
 
   const rows = useMemo(() => {
     if (!data) return []
@@ -61,6 +99,9 @@ export default function PlayerStats() {
     return [...filtered].sort((a, b) => {
       const av = a[sortKey]
       const bv = b[sortKey]
+      if (av == null && bv == null) return 0
+      if (av == null) return 1
+      if (bv == null) return -1
       if (typeof av === 'string') {
         return sortDir === 'asc' ? av.localeCompare(bv as string) : (bv as string).localeCompare(av)
       }
@@ -77,7 +118,7 @@ export default function PlayerStats() {
       <p style={{ color: '#888', fontSize: '0.85rem', marginBottom: '1rem' }}>
         Last updated: {data.lastUpdated} · {data.players.length} players tracked
       </p>
-      <div style={{ marginBottom: '1rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
         <input
           type="text"
           placeholder="Search players…"
@@ -85,34 +126,49 @@ export default function PlayerStats() {
           onChange={e => setSearch(e.target.value)}
           className="stats-search"
         />
+        <div style={{ position: 'relative' }}>
+          <button onClick={() => setColPickerOpen(o => !o)} className="stats-col-btn">
+            Columns ▾
+          </button>
+          {colPickerOpen && (
+            <div className="stats-col-picker">
+              {COLUMNS.map(col => (
+                <label key={col.key} className="stats-col-picker-item">
+                  <input
+                    type="checkbox"
+                    checked={visibleCols.has(col.key)}
+                    onChange={() => toggleCol(col.key)}
+                  />
+                  {col.label}
+                </label>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
       <table>
         <thead>
           <tr>
-            <th className="col-name stats-th-sortable" onClick={() => handleSort('name')}>
-              Name<SortIndicator active={sortKey === 'name'} dir={sortDir} />
-            </th>
-            <th className="stats-th-sortable" onClick={() => handleSort('appearances')}>
-              Appearances<SortIndicator active={sortKey === 'appearances'} dir={sortDir} />
-            </th>
-            <th className="stats-th-sortable" onClick={() => handleSort('bestRank')}>
-              Best Rank<SortIndicator active={sortKey === 'bestRank'} dir={sortDir} />
-            </th>
-            <th className="stats-th-sortable" onClick={() => handleSort('bestRankDate')}>
-              Best Rank Date<SortIndicator active={sortKey === 'bestRankDate'} dir={sortDir} />
-            </th>
+            {activeCols.map(col => (
+              <th
+                key={col.key}
+                className={['stats-th-sortable', col.key === 'name' ? 'col-name' : ''].filter(Boolean).join(' ')}
+                onClick={() => handleSort(col.key)}
+              >
+                {col.label}<SortIndicator active={sortKey === col.key} dir={sortDir} />
+              </th>
+            ))}
           </tr>
         </thead>
         <tbody>
           {rows.length === 0 && (
-            <tr><td colSpan={4} className="status">No players found.</td></tr>
+            <tr><td colSpan={activeCols.length} className="status">No players found.</td></tr>
           )}
           {rows.map(p => (
             <tr key={String(p.steamId)}>
-              <td className="name">{p.name}</td>
-              <td>{p.appearances}</td>
-              <td className="rank">#{p.bestRank}</td>
-              <td>{p.bestRankDate}</td>
+              {activeCols.map(col => (
+                <td key={col.key} className={col.className}>{col.render(p)}</td>
+              ))}
             </tr>
           ))}
         </tbody>
