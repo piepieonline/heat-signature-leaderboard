@@ -58,7 +58,16 @@ export default function PlayerStats() {
   const [search, setSearch] = useState('')
   const [sortKey, setSortKey] = useState<SortKey>('bestRank')
   const [sortDir, setSortDir] = useState<SortDir>('asc')
-  const [visibleCols, setVisibleCols] = useState<Set<SortKey>>(DEFAULT_VISIBLE)
+  const [visibleCols, setVisibleCols] = useState<Set<SortKey>>(() => {
+    try {
+      const saved = localStorage.getItem('stats-visible-cols')
+      if (saved) {
+        const parsed = JSON.parse(saved) as SortKey[]
+        if (Array.isArray(parsed) && parsed.length > 0) return new Set(parsed)
+      }
+    } catch { /* ignore */ }
+    return DEFAULT_VISIBLE
+  })
   const [colPickerOpen, setColPickerOpen] = useState(false)
 
   useEffect(() => {
@@ -83,6 +92,7 @@ export default function PlayerStats() {
       const next = new Set(prev)
       if (next.has(key)) next.delete(key)
       else next.add(key)
+      localStorage.setItem('stats-visible-cols', JSON.stringify([...next]))
       return next
     })
   }
