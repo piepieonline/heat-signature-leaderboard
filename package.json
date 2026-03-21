@@ -12,6 +12,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@tanstack/react-virtual": "^3.13.23",
     "chart.js": "^4.5.1",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",

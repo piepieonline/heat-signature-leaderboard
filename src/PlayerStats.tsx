@@ -1,4 +1,5 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
+import { useVirtualizer } from '@tanstack/react-virtual'
 import { isRemote } from './useLeaderboard'
 
 interface PlayerStat {
@@ -119,6 +120,20 @@ export default function PlayerStats() {
     })
   }, [data, search, sortKey, sortDir])
 
+  const scrollRef = useRef<HTMLDivElement>(null)
+
+  const virtualizer = useVirtualizer({
+    count: rows.length,
+    getScrollElement: () => scrollRef.current,
+    estimateSize: () => 32,
+    overscan: 15,
+  })
+
+  const virtualItems = virtualizer.getVirtualItems()
+  const totalSize = virtualizer.getTotalSize()
+  const paddingTop = virtualItems.length > 0 ? virtualItems[0].start : 0
+  const paddingBottom = virtualItems.length > 0 ? totalSize - virtualItems[virtualItems.length - 1].end : 0
+
   if (loading) return <p className="status">Loading stats…</p>
   if (error) return <p className="status error">Error loading stats: {error}</p>
   if (!data) return null
@@ -156,33 +171,40 @@ export default function PlayerStats() {
           )}
         </div>
       </div>
-      <table>
-        <thead>
-          <tr>
-            {activeCols.map(col => (
-              <th
-                key={col.key}
-                className={['stats-th-sortable', col.key === 'name' ? 'col-name' : ''].filter(Boolean).join(' ')}
-                onClick={() => handleSort(col.key)}
-              >
-                {col.label}<SortIndicator active={sortKey === col.key} dir={sortDir} />
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.length === 0 && (
-            <tr><td colSpan={activeCols.length} className="status">No players found.</td></tr>
-          )}
-          {rows.map(p => (
-            <tr key={String(p.steamId)}>
+      <div ref={scrollRef} style={{ height: '70vh', overflowY: 'auto' }}>
+        <table style={{ width: '100%', tableLayout: 'fixed' }}>
+          <thead style={{ position: 'sticky', top: 0, zIndex: 1 }}>
+            <tr>
               {activeCols.map(col => (
-                <td key={col.key} className={col.className}>{col.render(p)}</td>
+                <th
+                  key={col.key}
+                  className={['stats-th-sortable', col.key === 'name' ? 'col-name' : ''].filter(Boolean).join(' ')}
+                  onClick={() => handleSort(col.key)}
+                >
+                  {col.label}<SortIndicator active={sortKey === col.key} dir={sortDir} />
+                </th>
               ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {rows.length === 0 && (
+              <tr><td colSpan={activeCols.length} className="status">No players found.</td></tr>
+            )}
+            {paddingTop > 0 && <tr><td style={{ height: paddingTop, padding: 0 }} colSpan={activeCols.length} /></tr>}
+            {virtualItems.map(vRow => {
+              const p = rows[vRow.index]
+              return (
+                <tr key={String(p.steamId)}>
+                  {activeCols.map(col => (
+                    <td key={col.key} className={col.className}>{col.render(p)}</td>
+                  ))}
+                </tr>
+              )
+            })}
+            {paddingBottom > 0 && <tr><td style={{ height: paddingBottom, padding: 0 }} colSpan={activeCols.length} /></tr>}
+          </tbody>
+        </table>
+      </div>
     </div>
   )
 }

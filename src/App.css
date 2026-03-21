@@ -110,6 +110,14 @@ th {
 
 th.col-name {
   text-align: left;
+  width: 220px;
+}
+
+td.col-name {
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 tbody tr {
