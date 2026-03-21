@@ -147,10 +147,10 @@ export default function Leaderboard({ initialData, loading: initialLoading, fetc
               </tr>
             </thead>
             <tbody>
-              {displayData.entries.map((entry) => {
+              {displayData.entries.map((entry, i) => {
                 const { missions, expenses, style, timeStr } = parseDetails(entry.details)
                 return (
-                  <tr key={`${entry.steamId}-${date}`}>
+                  <tr key={`${i}-${date}`}>
                     <td className="rank">{entry.rank}</td>
                     <td className="name">{entry.name}</td>
                     <td>{missions}/3</td>
